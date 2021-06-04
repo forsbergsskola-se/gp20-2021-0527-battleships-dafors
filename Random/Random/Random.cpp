@@ -6,7 +6,7 @@ int main()
     std::cout << "enter desired iterations \n>";
     std::cin >> iterations;
     
-    int distribution[20]{0};
+    int distribution[20]{};
     srand(time(0));
 
     for (size_t i = 0; i < iterations; i++)

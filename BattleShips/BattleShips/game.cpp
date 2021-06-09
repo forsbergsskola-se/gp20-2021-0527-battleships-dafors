@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <memory>
 #include "game.h"
 #include "input_handler.h"
 #include "player.h"
@@ -8,65 +9,79 @@ bool ExistsInVector(T t, const std::vector<T>& arr) {
 	return find(arr.begin(), arr.end(), t) != arr.end();
 }
 
-void Game::InitPlayers()
-{
-	for (int i = 0; i < 2; i++)
-	{
-		Player* player = new Player{ i, board_size, ship_sizes };
-		players.push_back(player);
-	}
-}
-
 bool Game::Play()
 {
 	InitPlayers();
 	PlaceShips();
-
+	//DukeItOut();
 	std::cout << "Play again?";
 	bool play_again = InputHandler::ConfirmSelection();
 	return play_again;
 }
 
+
+void Game::InitPlayers()
+{
+	for (int i = 0; i < 2; i++)
+	{
+		Player player{ i, board_size, ship_sizes };
+		players.push_back(player);
+	}
+}
+
+void Game::DukeItOut()
+{
+	int current_player{ 0 };
+	
+	while (true)
+	{
+		DrawBoard(players[current_player].attack_board);
+		//std::cout << "-----------------PLAYER " << current_player << " Choose Target-------------------- \n";
+		//Coordinate input{ InputHandler::GetCoordinate() };
+		//break;
+	}
+}
+
+
 void Game::PlaceShips()
 {
 	for (auto player : players) {
-		std::cout << "PLAYER " << player->nr << "Choosing ship positions\n";
-		for (int i = 0; i < player->ships.size(); i++)
+		std::cout << "PLAYER " << player.nr << " choosing ship positions\n";
+		for (int i = 0; i < player.ships.size(); i++)
 		{
-			PlaceShip(player->nr, player->ships[i]);
+			PlaceShip(player.nr, player.ships[i]);
 		}
 	}
 }
 
-void Game::PlaceShip(int player, Ship& ship) {
-	std::vector<Coordinate> new_ship_coords(ship.hull_size);
+void Game::PlaceShip(int player_index, std::shared_ptr<Ship> ship) {
+	std::vector<Coordinate> new_ship_coords(ship->hull_size);
 	bool valid_ship = false;
-	auto& ship_board = players[player]->ship_board;
+	auto& ship_board = players[player_index].ship_board;
 	while (!valid_ship)
 	{
 		new_ship_coords.clear();
-		DrawBoard(player, ship_board, new_ship_coords);
-		for (int i = 0; i < ship.hull_size; i++)
+		DrawBoard(player_index, ship_board, new_ship_coords);
+		for (int i = 0; i < ship->hull_size; i++)
 		{
-			std::cout << "Placing ship of size " << ship.hull_size << ", choose cell " << i << "\n";
-			PlaceSingle(player, ship, new_ship_coords);
-			DrawBoard(player, ship_board, new_ship_coords);
+			std::cout << "Placing ship of size " << ship->hull_size << ", choose cell " << i << "\n";
+			PlaceSingle(player_index, ship, new_ship_coords);
+			DrawBoard(player_index, ship_board, new_ship_coords);
 		}
 		std::cout << "Ship complete. Keep new ship? \n";
 		valid_ship = InputHandler::ConfirmSelection();
 		if (valid_ship)
-			players[player]->ship_board.EmplaceMany(&ship, new_ship_coords);
+			ship_board.PlaceMany(ship, new_ship_coords);
 	}
 }
 
-
-void Game::PlaceSingle(int player, Ship& ship, std::vector<Coordinate>& new_ship_coords)
+void Game::PlaceSingle(int player_index, std::shared_ptr<Ship> ship, std::vector<Coordinate>& new_ship_coords)
 {
 	Coordinate input{-1,-1};
 	bool valid_input = false;
 	while (!valid_input) {
 		input = { InputHandler::GetCoordinate() };
-		valid_input = PositionIsValid(input, player, new_ship_coords);
+		valid_input = PositionIsValid(input, player_index, new_ship_coords);
 	}
 	new_ship_coords.push_back(input);
 }
@@ -105,7 +120,7 @@ bool Game::PositionInsideOfBounds(const Coordinate &pos) const
 
 bool Game::PositionIsOccupied(const Coordinate &coord, int player_index) const
 {
-	return players[player_index]->ship_board.Get(coord) != nullptr;
+	return players[player_index].ship_board.Get(coord) != nullptr;
 }
 
 bool Game::PositionAlreadySelectedInNewShip(const Coordinate& coord, const std::vector<Coordinate>& ship) const
@@ -140,6 +155,11 @@ bool Game::PositionIsContinuous(const Coordinate& new_pos, const std::vector<Coo
 	return false;
 }
 
+void Game::DrawBoard(const Board<char>& board) const 
+{
+	std::cout << "TODO";
+}
+
 void Game::DrawBoard(const Board<Ship*>& board) const
 {
 	std::cout << "\n";
@@ -155,10 +175,10 @@ void Game::DrawBoard(const Board<Ship*>& board) const
 	}
 }
 
-void Game::DrawBoard(int player, const Board<Ship*>& board, const std::vector<Coordinate> &new_ship) const
+void Game::DrawBoard(int player_index, const Board<std::shared_ptr<Ship>>& board, const std::vector<Coordinate> &new_ship) const
 {
 	std::cout << "\n";
-	std::cout << "-----------------PLAYER " << player << " Ship Placement-------------------- \n";
+	std::cout << "-----------------PLAYER " << player_index << " Ship Placement-------------------- \n";
 	char mark{};
 	for (int y = 0; y < board_size; y++)
 	{

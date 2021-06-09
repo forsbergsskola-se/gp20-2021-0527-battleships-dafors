@@ -9,25 +9,21 @@ public:
 	Game(const std::vector<int> &ship_sizes, int board_size)
 		: ship_sizes{ ship_sizes }, board_size{ board_size } {
 	}
-	~Game() {
-		for (auto player : players)
-			delete player;
-	}
 	bool Play();
 	
 private:
 	const int board_size;
-	int current_player{ 0 };
 
 	std::vector<int> ship_sizes;
-	std::vector<Player*> players;
+	std::vector<Player> players;
 	std::vector<Coordinate> new_ship_positions;
 
 	void InitPlayers();
+	void DukeItOut();
 
 	void PlaceShips();
-	void PlaceShip(int player, Ship& ship);
-	void PlaceSingle(int player, Ship& ship, std::vector<Coordinate>&);
+	void PlaceShip(int player, std::shared_ptr<Ship> ship);
+	void PlaceSingle(int player, std::shared_ptr<Ship> ship, std::vector<Coordinate>& new_ship_coords);
 
 	bool PositionIsValid(const Coordinate &pos, int player, const std::vector<Coordinate>&) const;
 	bool PositionInsideOfBounds(const Coordinate&) const;
@@ -38,7 +34,7 @@ private:
 
 	void DrawBoard(const Board<char> &board) const;
 	void DrawBoard(const Board<Ship*> &board) const;
-	void DrawBoard(int player, const Board<Ship*>& board, const std::vector<Coordinate>& new_ship) const;
+	void DrawBoard(int player, const Board<std::shared_ptr<Ship>>& board, const std::vector<Coordinate>& new_ship) const;
 };
 
 

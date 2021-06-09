@@ -6,5 +6,5 @@ public:
 
 	const int player;
 	int hull_size;
-	bool sunc() { return hull_size <= 0; };
+	bool Sunc() { return hull_size <= 0; };
 };

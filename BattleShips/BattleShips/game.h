@@ -19,13 +19,15 @@ private:
 	std::vector<Coordinate> new_ship_positions;
 
 	void InitPlayers();
-	void DukeItOut();
+	void Battle();
+
+	bool FireAtPosition(const Coordinate& pos, int attacker, int defender);
 
 	void PlaceShips();
 	void PlaceShip(int player, std::shared_ptr<Ship> ship);
 	void PlaceSingle(int player, std::shared_ptr<Ship> ship, std::vector<Coordinate>& new_ship_coords);
 
-	bool PositionIsValid(const Coordinate &pos, int player, const std::vector<Coordinate>&) const;
+	bool PositionIsValid(const Coordinate& pos, int player, const std::vector<Coordinate>&) const;
 	bool PositionInsideOfBounds(const Coordinate&) const;
 	bool PositionIsOccupied(const Coordinate&, int) const;
 	bool PositionAlreadySelectedInNewShip(const Coordinate&, const std::vector<Coordinate>&) const;
@@ -33,7 +35,6 @@ private:
 	bool PositionIsContinuous(const Coordinate&, const std::vector<Coordinate>&) const;
 
 	void DrawBoard(const Board<char> &board) const;
-	void DrawBoard(const Board<Ship*> &board) const;
 	void DrawBoard(int player, const Board<std::shared_ptr<Ship>>& board, const std::vector<Coordinate>& new_ship) const;
 };
 

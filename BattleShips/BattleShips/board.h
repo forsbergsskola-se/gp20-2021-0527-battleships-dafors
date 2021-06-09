@@ -13,15 +13,15 @@ public:
 	Board(int board_size, const T& t) :
 		board{ board_size, std::vector<T>(board_size, t) } {}
 
-	void Place(T& t, Coordinate coordinate) {
+	void Place(const T& t, Coordinate coordinate) {
 		board[coordinate.x][coordinate.y] = t;
 	}
 
-	T Get(Coordinate coord) const {
+	T Get(const Coordinate& coord) {
 		return board[coord.x][coord.y];
 	}
 
-	void PlaceMany(T& t, std::vector<Coordinate> coords) {
+	void PlaceMany(const T& t, std::vector<Coordinate> coords) {
 		for (auto coord : coords) {
 			Place(t, coord);
 		}

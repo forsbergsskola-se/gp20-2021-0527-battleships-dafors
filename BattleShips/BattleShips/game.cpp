@@ -13,8 +13,8 @@ bool Game::Play()
 {
 	InitPlayers();
 	PlaceShips();
-	//DukeItOut();
-	std::cout << "Play again?";
+	Battle();
+	std::cout << "Play again? \n";
 	bool play_again = InputHandler::ConfirmSelection();
 	return play_again;
 }
@@ -24,24 +24,54 @@ void Game::InitPlayers()
 {
 	for (int i = 0; i < 2; i++)
 	{
-		Player player{ i, board_size, ship_sizes };
-		players.push_back(player);
+		players.push_back(Player{ i, board_size, ship_sizes} );
 	}
 }
 
-void Game::DukeItOut()
+void Game::Battle()
 {
-	int current_player{ 0 };
-	
+	int attacker{ 0 };
+	int defender{ 1 }; 
+
 	while (true)
 	{
-		DrawBoard(players[current_player].attack_board);
-		//std::cout << "-----------------PLAYER " << current_player << " Choose Target-------------------- \n";
-		//Coordinate input{ InputHandler::GetCoordinate() };
-		//break;
+		DrawBoard(players[attacker].attack_board);
+		std::cout << "-----------------PLAYER " << attacker << " Choose Target-------------------- \n";
+		Coordinate input{ InputHandler::GetCoordinate() };
+		bool ship_sunc = FireAtPosition(input, attacker, defender);
+		if (ship_sunc) {
+			if (players[defender].HasLost()) {
+				std::cout << "PLAYER " << attacker << " is the winner! \n";
+				break;
+			}
+		}
+		attacker = (attacker + 1) % 2;
+		defender = 1 - attacker;
 	}
 }
 
+bool Game::FireAtPosition(const Coordinate& pos, int attacker, int defender)
+{
+	std::cout << "attacking " << pos << "\n";
+	std::cout << "...";
+	if (!PositionIsOccupied(pos, defender)) {
+		std::cout << "MISS!\n";
+		players[attacker].attack_board.Place('M', pos);
+		return false;
+	}
+
+	std::cout << "HIT! \n";
+	auto& defender_shipboard = players[defender].ship_board;
+	int current_hull = --(defender_shipboard.Get(pos)->hull_size);
+	defender_shipboard.board[pos.x][pos.y] = nullptr;
+	players[attacker].attack_board.Place('H', pos);
+	
+	if (current_hull <= 0) {
+		std::cout << "Ship sunc \n";
+		return true;
+	}
+	return false;
+}
 
 void Game::PlaceShips()
 {
@@ -49,6 +79,7 @@ void Game::PlaceShips()
 		std::cout << "PLAYER " << player.nr << " choosing ship positions\n";
 		for (int i = 0; i < player.ships.size(); i++)
 		{
+			std::cout << "Placing ship number " << i << "\n";
 			PlaceShip(player.nr, player.ships[i]);
 		}
 	}
@@ -120,7 +151,9 @@ bool Game::PositionInsideOfBounds(const Coordinate &pos) const
 
 bool Game::PositionIsOccupied(const Coordinate &coord, int player_index) const
 {
-	return players[player_index].ship_board.Get(coord) != nullptr;
+	auto ship_board = players[player_index].ship_board;
+	return ship_board.Get(coord) != nullptr;
+	//return players[player_index].ship_board.Get(coord) != nullptr; //not working for some reason
 }
 
 bool Game::PositionAlreadySelectedInNewShip(const Coordinate& coord, const std::vector<Coordinate>& ship) const
@@ -157,19 +190,12 @@ bool Game::PositionIsContinuous(const Coordinate& new_pos, const std::vector<Coo
 
 void Game::DrawBoard(const Board<char>& board) const 
 {
-	std::cout << "TODO";
-}
-
-void Game::DrawBoard(const Board<Ship*>& board) const
-{
 	std::cout << "\n";
-	char mark{};
 	for (int y = 0; y < board_size; y++)
 	{
 		for (int x = 0; x < board_size; x++)
 		{
-			mark = (board.board[x][y] == nullptr) ? '.' : '#';
-			std::cout << mark << " ";
+			std::cout << board.board[x][y] << " ";
 		}
 		std::cout << "\n";
 	}

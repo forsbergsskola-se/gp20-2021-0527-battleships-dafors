@@ -20,4 +20,13 @@ public:
 	Board<std::shared_ptr<Ship>> ship_board;
 	Board<char> attack_board;
 	const int nr;
+
+	bool HasLost() const {
+		for (auto ship : ships) {
+			if (!ship->Sunc()) {
+				return false;
+			}
+		}
+		return true;
+	}
 };
